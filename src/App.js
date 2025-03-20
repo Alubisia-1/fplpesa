@@ -7,6 +7,7 @@ import Stats from './pages/Stats';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Admin from './pages/Admin';
+import LeaguePage from './pages/LeaguePage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function AppContent() {
         <Route path="/stats" element={user ? <Stats /> : <Navigate to="/login" />} />
         <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
         <Route path="/admin" element={user && user.isAdmin ? <Admin /> : <Navigate to="/" />} />
+        <Route path="/league/:leagueName" element={user ? <LeaguePage /> : <Navigate to="/login" />} />
       </Routes>
 
       {user && (

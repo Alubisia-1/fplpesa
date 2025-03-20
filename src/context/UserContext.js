@@ -5,6 +5,7 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [selectedLeague, setSelectedLeague] = useState('Madaraka');
+  const [joinedLeague, setJoinedLeague] = useState(null);
   const [gameweekData, setGameweekData] = useState({
     gameweek: 29,
     deadline: 'Saturday, 11:00 EAT',
@@ -15,7 +16,6 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     // Mock user data (simulating a logged-in user for testing)
-    // You can toggle this to null to simulate a logged-out state
     setUser({ id: 1, name: 'John Doe', fplId: '12345', paid: true, isAdmin: false });
   }, []);
 
@@ -26,6 +26,8 @@ export const UserProvider = ({ children }) => {
         setUser,
         selectedLeague,
         setSelectedLeague,
+        joinedLeague,
+        setJoinedLeague,
         gameweekData,
         setGameweekData,
       }}
