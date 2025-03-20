@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { UserContext } from '../context/UserContext'; // Import UserContext
+import { UserContext } from '../context/UserContext';
 
 function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLeagueSelection = false }) {
-  const { joinedLeague } = useContext(UserContext); // Access joinedLeague from context
+  const { joinedLeague, paymentHistory, setPaymentHistory } = useContext(UserContext);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [pin, setPin] = useState('');
   const [selectedLeague, setSelectedLeague] = useState(league || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,7 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
       setSelectedLeague('');
       setShowConfirmation(false);
       setPhoneNumber('');
+      setPin('');
       setError('');
     }
   }, [isOpen, showLeagueSelection]);
@@ -31,20 +33,17 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
     e.preventDefault();
     setError('');
 
-    // Check if user is already in a league
     const targetLeague = showLeagueSelection ? selectedLeague : league;
     if (joinedLeague && joinedLeague !== targetLeague) {
       setError('You are already in a league. Leave your current league to join a new one.');
       return;
     }
 
-    // Validate league selection if on Home page
     if (showLeagueSelection && !selectedLeague) {
       setError('Please select a league to join.');
       return;
     }
 
-    // Validate phone number
     const phoneRegex = /^254\d{9}$/;
     if (!phoneRegex.test(phoneNumber)) {
       setError('Please enter a valid MPESA phone number (e.g., 254712345678)');
@@ -55,9 +54,27 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
   };
 
   const handlePayment = () => {
+    setError('');
+
+    if (!/^\d{4}$/.test(pin)) {
+      setError('Please enter a valid 4-digit MPESA PIN.');
+      setShowConfirmation(false);
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      const targetLeague = showLeagueSelection ? selectedLeague : league;
+      const amount = parseInt(currentBuyIn.split(' ')[0], 10); // Extract amount from "1000 KSH per gameweek"
+      const newPayment = {
+        id: paymentHistory.length + 1,
+        league: targetLeague,
+        amount,
+        date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+        status: 'Completed',
+      };
+      setPaymentHistory([...paymentHistory, newPayment]); // Add to payment history
       alert('Payment successful! Please check your phone for the MPESA confirmation.');
       onPaymentSuccess(showLeagueSelection ? selectedLeague : league);
       setShowConfirmation(false);
@@ -132,6 +149,18 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
             <p className="text-sm text-gray-600 mb-4">
               You are about to pay {currentBuyIn} to join the {showLeagueSelection ? selectedLeague : league} league using {phoneNumber}.
             </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">MPESA PIN</label>
+              <input
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Enter your 4-digit PIN"
+                className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                required
+              />
+            </div>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowConfirmation(false)}
