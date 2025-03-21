@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { AiFillHome, AiFillTrophy, AiOutlineUser } from 'react-icons/ai';
+import { AiFillHome, AiFillTrophy, AiOutlineUser, AiFillSetting } from 'react-icons/ai';
+import { ToastContainer } from 'react-toastify'; // Import ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import default styles
 import { UserProvider, UserContext } from './context/UserContext';
 import Home from './pages/Home';
 import Stats from './pages/Stats';
@@ -14,6 +16,18 @@ function App() {
     <UserProvider>
       <Router>
         <AppContent />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </Router>
     </UserProvider>
   );
@@ -62,6 +76,17 @@ function AppContent() {
             <AiOutlineUser className="text-xl sm:text-2xl" />
             <p className="text-xs sm:text-sm">Profile</p>
           </NavLink>
+          {user.isAdmin && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                isActive ? 'text-blue-600 flex flex-col items-center' : 'text-gray-600 flex flex-col items-center'
+              }
+            >
+              <AiFillSetting className="text-xl sm:text-2xl" />
+              <p className="text-xs sm:text-sm">Admin</p>
+            </NavLink>
+          )}
         </nav>
       )}
     </div>

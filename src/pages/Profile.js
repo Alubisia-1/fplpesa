@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { UserContext } from '../context/UserContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify'; // Import toast
 import Header from '../components/Header';
 
 function Profile() {
@@ -18,6 +19,7 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false); // Add state for confirmation modal
 
   if (!user || !fplData) {
     return (
@@ -32,21 +34,34 @@ function Profile() {
     setJoinedLeague(null);
     setSelectedLeague('Madaraka');
     navigate('/login');
+    toast.info('You have been logged out.', {
+      position: 'top-right',
+      autoClose: 3000,
+    });
   };
 
   const handleLeaveLeague = () => {
-    if (window.confirm(`Are you sure you want to leave the ${joinedLeague} league?`)) {
-      setJoinedLeague(null);
-      setSelectedLeague('Madaraka');
-      alert(`You have left the ${joinedLeague} league.`);
-    }
+    setShowLeaveConfirm(true); // Show confirmation modal
+  };
+
+  const confirmLeaveLeague = () => {
+    setJoinedLeague(null);
+    setSelectedLeague('Madaraka');
+    setShowLeaveConfirm(false);
+    toast.success(`You have left the ${joinedLeague} league.`, {
+      position: 'top-right',
+      autoClose: 3000,
+    });
   };
 
   const handleUpdateProfile = (e) => {
     e.preventDefault();
     setUser({ ...user, name, email });
     setIsEditing(false);
-    alert('Profile updated successfully.');
+    toast.success('Profile updated successfully.', {
+      position: 'top-right',
+      autoClose: 3000,
+    });
   };
 
   return (
@@ -201,6 +216,32 @@ function Profile() {
               Leave League
             </button>
           </section>
+        )}
+
+        {/* Confirmation Modal for Leaving League */}
+        {showLeaveConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Leave League</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to leave the {joinedLeague} league?
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowLeaveConfirm(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLeaveLeague}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Leave
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* 6. Payment History */}

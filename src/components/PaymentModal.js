@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../context/UserContext';
+import { toast } from 'react-toastify';
 
 function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLeagueSelection = false }) {
-  const { joinedLeague, paymentHistory, setPaymentHistory } = useContext(UserContext);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const { user, joinedLeague, paymentHistory, setPaymentHistory } = useContext(UserContext);
+  const [phoneNumber, setPhoneNumber] = useState(''); // Store only the 9 digits after +254
   const [pin, setPin] = useState('');
   const [selectedLeague, setSelectedLeague] = useState(league || '');
   const [error, setError] = useState('');
@@ -20,12 +21,14 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
   const currentBuyIn = showLeagueSelection ? (selectedLeague ? leagueData[selectedLeague].buyIn : '') : buyIn;
 
   useEffect(() => {
-    if (isOpen && showLeagueSelection) {
-      setSelectedLeague('');
-      setShowConfirmation(false);
-      setPhoneNumber('');
+    if (isOpen) {
+      setPhoneNumber(''); // Reset to empty (user enters only the 9 digits)
       setPin('');
       setError('');
+      setShowConfirmation(false);
+      if (showLeagueSelection) {
+        setSelectedLeague('');
+      }
     }
   }, [isOpen, showLeagueSelection]);
 
@@ -44,9 +47,10 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
       return;
     }
 
-    const phoneRegex = /^254\d{9}$/;
+    // Validate the phone number (9 digits after +254)
+    const phoneRegex = /^\d{9}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      setError('Please enter a valid MPESA phone number (e.g., 254712345678)');
+      setError('Please enter a valid 9-digit phone number (e.g., 712345678)');
       return;
     }
 
@@ -66,16 +70,22 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
     setTimeout(() => {
       setLoading(false);
       const targetLeague = showLeagueSelection ? selectedLeague : league;
-      const amount = parseInt(currentBuyIn.split(' ')[0], 10); // Extract amount from "1000 KSH per gameweek"
+      const amount = parseInt(currentBuyIn.split(' ')[0], 10);
       const newPayment = {
         id: paymentHistory.length + 1,
+        userId: user.id,
+        userName: user.name,
         league: targetLeague,
         amount,
-        date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
-        status: 'Completed',
+        date: new Date().toISOString().split('T')[0],
+        status: 'Pending',
+        transactionId: `TXN${Math.floor(Math.random() * 100000)}`,
       };
-      setPaymentHistory([...paymentHistory, newPayment]); // Add to payment history
-      alert('Payment successful! Please check your phone for the MPESA confirmation.');
+      setPaymentHistory([...paymentHistory, newPayment]);
+      toast.success('Payment submitted! Awaiting admin verification.', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
       onPaymentSuccess(showLeagueSelection ? selectedLeague : league);
       setShowConfirmation(false);
       onClose();
@@ -83,6 +93,9 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
   };
 
   if (!isOpen) return null;
+
+  // Combine +254 with the user's input for display in the confirmation step
+  const fullPhoneNumber = `+254${phoneNumber}`;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -117,14 +130,24 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
             <form onSubmit={handleConfirm}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Phone Number (MPESA)</label>
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="e.g., 254712345678"
-                  className="w-full mt-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-                  required
-                />
+                <div className="flex items-center mt-1">
+                  <span className="inline-block px-3 py-2 bg-gray-200 text-gray-800 rounded-l-lg border border-r-0 border-gray-300">
+                    +254
+                  </span>
+                  <input
+                    type="text"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ''); // Allow only digits
+                      if (value.length <= 9) {
+                        setPhoneNumber(value);
+                      }
+                    }}
+                    placeholder="712345678"
+                    className="w-full p-2 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    required
+                  />
+                </div>
               </div>
               <div className="flex justify-end gap-2">
                 <button
@@ -147,7 +170,7 @@ function PaymentModal({ isOpen, onClose, league, buyIn, onPaymentSuccess, showLe
           <>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Confirm Payment</h2>
             <p className="text-sm text-gray-600 mb-4">
-              You are about to pay {currentBuyIn} to join the {showLeagueSelection ? selectedLeague : league} league using {phoneNumber}.
+              You are about to pay {currentBuyIn} to join the {showLeagueSelection ? selectedLeague : league} league using {fullPhoneNumber}.
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">MPESA PIN</label>

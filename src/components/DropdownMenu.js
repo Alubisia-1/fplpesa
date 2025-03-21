@@ -30,6 +30,15 @@ function DropdownMenu({ isOpen, onClose, user, onLogout }) {
             >
               Stats
             </Link>
+            {user.isAdmin && (
+              <Link
+                to="/admin"
+                className="px-4 py-2 text-gray-800 hover:bg-gray-100"
+                onClick={onClose}
+              >
+                Admin
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="px-4 py-2 text-gray-800 hover:bg-gray-100 text-left rounded-b-lg"
@@ -46,16 +55,6 @@ function DropdownMenu({ isOpen, onClose, user, onLogout }) {
             Login
           </Link>
         )}
-        {/* Add more menu items here as needed */}
-        {/* Example: 
-        <Link
-          to="/settings"
-          className="px-4 py-2 text-gray-800 hover:bg-gray-100"
-          onClick={onClose}
-        >
-          Settings
-        </Link>
-        */}
       </div>
     </div>
   );

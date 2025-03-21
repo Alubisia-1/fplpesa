@@ -15,19 +15,20 @@ export const UserProvider = ({ children }) => {
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [fplData, setFplData] = useState(null);
+  const [invites, setInvites] = useState([]); // Add invites state
 
   useEffect(() => {
-    // Mock user data after FPL authentication
+    // Mock user data (admin user)
     setUser({
       id: 1,
-      fplId: '12345', // FPL ID from authentication
-      name: 'John Doe', // Fetched from FPL API (e.g., entry name)
-      email: 'john.doe@example.com', // Fetched or set during signup
+      fplId: '12345',
+      name: 'John Doe',
+      email: 'john.doe@example.com',
       paid: true,
-      isAdmin: false,
+      isAdmin: true, // Set to true for admin user
     });
 
-    // Mock FPL data (fetched after authentication)
+    // Mock FPL data
     setFplData({
       teamName: 'The Mighty Reds',
       overallPoints: 1450,
@@ -52,11 +53,18 @@ export const UserProvider = ({ children }) => {
       ],
     });
 
-    // Mock payment history
+    // Mock payment history (with user details for admin)
     setPaymentHistory([
-      { id: 1, league: 'Madaraka', amount: 1000, date: '2025-03-15', status: 'Completed' },
-      { id: 2, league: 'Taifa', amount: 500, date: '2025-03-10', status: 'Completed' },
-      { id: 3, league: 'Umoja', amount: 200, date: '2025-03-05', status: 'Failed' },
+      { id: 1, userId: 2, userName: 'Jane Smith', league: 'Madaraka', amount: 1000, date: '2025-03-15', status: 'Pending', transactionId: 'TXN123' },
+      { id: 2, userId: 3, userName: 'Mike Johnson', league: 'Taifa', amount: 500, date: '2025-03-10', status: 'Completed', transactionId: 'TXN124' },
+      { id: 3, userId: 4, userName: 'Sarah Brown', league: 'Umoja', amount: 200, date: '2025-03-05', status: 'Failed', transactionId: 'TXN125' },
+    ]);
+
+    // Mock invites
+    setInvites([
+      { id: 1, league: 'Madaraka', code: 'MAD2025', email: 'jane.smith@example.com', status: 'Pending', createdAt: '2025-03-15' },
+      { id: 2, league: 'Taifa', code: 'TAI2025', email: 'mike.johnson@example.com', status: 'Accepted', createdAt: '2025-03-10' },
+      { id: 3, league: 'Umoja', code: 'UMO2025', email: 'sarah.brown@example.com', status: 'Expired', createdAt: '2025-03-05' },
     ]);
   }, []);
 
@@ -75,6 +83,8 @@ export const UserProvider = ({ children }) => {
         setPaymentHistory,
         fplData,
         setFplData,
+        invites,
+        setInvites,
       }}
     >
       {children}
